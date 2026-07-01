@@ -659,6 +659,7 @@ function kasi_exchange_dashboard_link_label(bool $isLoggedIn): string
                 <a href="<?= htmlspecialchars($dashboardUrl, ENT_QUOTES, 'UTF-8') ?>" class="kasi-inline-link kasi-nav-link-primary"><?= htmlspecialchars(kasi_exchange_dashboard_link_label($isLoggedIn), ENT_QUOTES, 'UTF-8') ?></a>
                 <a href="<?= htmlspecialchars($cartUrl, ENT_QUOTES, 'UTF-8') ?>" class="kasi-inline-link kasi-bag-link">Bag (<?= htmlspecialchars((string) $bagCount, ENT_QUOTES, 'UTF-8') ?>)</a>
                 <a href="<?= htmlspecialchars($savedItemsUrl, ENT_QUOTES, 'UTF-8') ?>" class="kasi-inline-link">Saved Items</a>
+                <a href="<?= htmlspecialchars(kasi_exchange_url('about.php'), ENT_QUOTES, 'UTF-8') ?>" class="kasi-inline-link">ABOUT US</a>
             </div>
         </div>
     </header>

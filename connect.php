@@ -67,7 +67,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $adminOverviewUrl = kasi_exchange_url('admin_dashboard.php');
-$isAdmin = (string) ($_SESSION['user_role'] ?? $_SESSION['role'] ?? '') === 'admin';
 $homeUrl = kasi_exchange_url('index.php');
 
 $supportTickets = [];
@@ -226,7 +225,7 @@ if (!function_exists('kasi_exchange_connect_stars')) {
 <main class="container py-4 py-lg-5 connect-shell min-vh-100 d-flex flex-column justify-content-center">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <a href="<?= htmlspecialchars($homeUrl, ENT_QUOTES, 'UTF-8') ?>" class="text-decoration-none muted-copy">← Back to Marketplace</a>
-        <?php if ($isAdmin): ?>
+        <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
             <a href="<?= htmlspecialchars($adminOverviewUrl, ENT_QUOTES, 'UTF-8') ?>" class="admin-link">Admin Overview</a>
         <?php endif; ?>
     </div>

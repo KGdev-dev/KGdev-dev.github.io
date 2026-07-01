@@ -3,7 +3,8 @@
 $required_roles = [];
 require_once __DIR__ . '/check_session.php';
 
-if (($_SESSION['role'] ?? '') !== 'admin') {
+if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+    header('HTTP/1.1 403 Forbidden');
     header('Location: index.php');
     exit();
 }
