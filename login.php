@@ -226,19 +226,19 @@ $csrfToken = kasi_exchange_csrf_token();
         }
 
         .login-card {
-            background: rgba(255, 255, 255, 0.86);
-            border: 1px solid rgba(255, 218, 185, 0.55);
-            border-radius: 28px;
-            box-shadow: 0 22px 60px rgba(66, 46, 28, 0.12);
-            backdrop-filter: blur(16px);
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            backdrop-filter: none;
         }
 
         .brand-card {
-            background: rgba(255, 255, 255, 0.58);
-            border: 1px solid rgba(152, 251, 152, 0.28);
-            border-radius: 28px;
-            box-shadow: 0 18px 50px rgba(40, 88, 61, 0.12);
-            backdrop-filter: blur(12px);
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            backdrop-filter: none;
         }
 
         .login-kicker {
@@ -257,16 +257,30 @@ $csrfToken = kasi_exchange_csrf_token();
         }
 
         .qa-pill {
-            border-radius: 999px !important;
-            border-color: rgba(255, 140, 0, 0.24) !important;
+            border-radius: 14px !important;
+            border: 1px solid rgba(255, 140, 0, 0.16) !important;
             color: #6b5748 !important;
+            background: rgba(255, 255, 255, 0.5) !important;
+            box-shadow: none !important;
         }
 
         .qa-pill:hover,
         .qa-pill:focus {
-            background: rgba(255, 250, 240, 0.95) !important;
+            background: rgba(255, 250, 240, 0.92) !important;
             color: #3e352d !important;
             border-color: rgba(255, 140, 0, 0.42) !important;
+        }
+
+        .qa-pill:active {
+            transform: none;
+        }
+
+        .flat-copy {
+            max-width: 34rem;
+        }
+
+        .split-stack > * + * {
+            margin-top: 0.9rem;
         }
 
         .step-chip {
@@ -303,11 +317,11 @@ $csrfToken = kasi_exchange_csrf_token();
 <main class="login-page container-fluid p-0">
     <div class="row g-0 min-vh-100">
         <div class="col-md-6 login-panel login-panel-left d-flex align-items-center justify-content-center">
-            <div class="login-card p-4 p-lg-5">
-                <div class="mb-4">
+            <div class="login-card p-0">
+                <div class="split-stack">
                     <div class="login-kicker mb-3">Welcome back to Kasi Exchange</div>
                     <h1 class="display-6 fw-bold split-title mb-2">Log in</h1>
-                    <p class="mb-0 text-muted">Sign in to continue browsing, saving items, and checking out.</p>
+                    <p class="mb-0 text-muted flat-copy">Sign in to continue browsing, saving items, and checking out.</p>
                 </div>
 
                 <?php if ($flashSuccess !== ''): ?>
@@ -324,7 +338,7 @@ $csrfToken = kasi_exchange_csrf_token();
                     </div>
                 <?php endif; ?>
 
-                <form method="post" action="login.php" novalidate>
+                <form method="post" action="login.php" novalidate class="mt-4">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
                     <input type="hidden" name="return_to" value="<?= htmlspecialchars($returnTo, ENT_QUOTES, 'UTF-8') ?>">
                     <div class="form-floating mb-3">
@@ -345,52 +359,52 @@ $csrfToken = kasi_exchange_csrf_token();
                 <div class="mt-4 pt-4 border-top">
                     <div class="small text-uppercase fw-semibold text-muted mb-3">QA Test Accounts</div>
                     <div class="d-grid gap-2">
-                        <button type="button" class="btn btn-outline-secondary qa-pill text-start" data-qa-email="sipho@kasi.com" data-qa-password="password123">Buyer - Sipho</button>
-                        <button type="button" class="btn btn-outline-secondary qa-pill text-start" data-qa-email="thabo@kasi.com" data-qa-password="password123">Seller - Thabo</button>
-                        <button type="button" class="btn btn-outline-secondary qa-pill text-start" data-qa-email="vusi@kasi.com" data-qa-password="password123">Hub Agent - Vusi</button>
-                        <button type="button" class="btn btn-outline-secondary qa-pill text-start" data-qa-email="admin@kasi.com" data-qa-password="password123">Admin - God Mode</button>
+                        <button type="button" class="btn qa-pill text-start" data-qa-email="sipho@kasi.com" data-qa-password="password123">Buyer - Sipho</button>
+                        <button type="button" class="btn qa-pill text-start" data-qa-email="thabo@kasi.com" data-qa-password="password123">Seller - Thabo</button>
+                        <button type="button" class="btn qa-pill text-start" data-qa-email="vusi@kasi.com" data-qa-password="password123">Hub Agent - Vusi</button>
+                        <button type="button" class="btn qa-pill text-start" data-qa-email="admin@kasi.com" data-qa-password="password123">Admin - God Mode</button>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="col-md-6 login-panel login-panel-right d-flex align-items-center justify-content-center">
-            <div class="brand-card p-4 p-lg-5">
-                <div class="mb-4">
+            <div class="brand-card p-0">
+                <div class="split-stack">
                     <p class="kasi-eyebrow mb-2">Kasi Exchange</p>
                     <h2 class="display-6 fw-bold split-title mb-3">About Us</h2>
-                    <p class="brand-copy mb-0">A simple place to buy, sell, and discover local finds with a clean shopping experience built for the Kasi community.</p>
+                    <p class="brand-copy mb-0 flat-copy">A simple place to buy, sell, and discover local finds with a clean shopping experience built for the Kasi community.</p>
                 </div>
 
-                <div>
+                <div class="mt-4">
                     <h3 class="h5 fw-bold mb-3">How it works</h3>
                     <div class="d-grid gap-3">
                         <div class="d-flex gap-3 align-items-start">
                             <span class="step-chip">1</span>
                             <div>
-                                <div class="fw-semibold">Create an account</div>
-                                <div class="text-muted">Sign up or use a test account to get started fast.</div>
+                                <div class="fw-semibold">Buyer Places Order</div>
+                                <div class="text-muted">Choose a uniform and securely pay into escrow.</div>
                             </div>
                         </div>
                         <div class="d-flex gap-3 align-items-start">
                             <span class="step-chip">2</span>
                             <div>
-                                <div class="fw-semibold">Browse products</div>
-                                <div class="text-muted">Explore items from local sellers in one clean catalog.</div>
+                                <div class="fw-semibold">Seller Drops Off</div>
+                                <div class="text-muted">The seller leaves the item at a local verified Spaza Hub.</div>
                             </div>
                         </div>
                         <div class="d-flex gap-3 align-items-start">
                             <span class="step-chip">3</span>
                             <div>
-                                <div class="fw-semibold">Add to bag</div>
-                                <div class="text-muted">Save items, choose a quantity, and keep shopping.</div>
+                                <div class="fw-semibold">Hub Agent Verifies</div>
+                                <div class="text-muted">The Spaza Agent verifies the item condition and updates the pipeline.</div>
                             </div>
                         </div>
                         <div class="d-flex gap-3 align-items-start">
                             <span class="step-chip">4</span>
                             <div>
-                                <div class="fw-semibold">Checkout securely</div>
-                                <div class="text-muted">Finish your order with a smooth checkout flow.</div>
+                                <div class="fw-semibold">Safe Collection</div>
+                                <div class="text-muted">The buyer collects the uniform, completing the escrow transfer.</div>
                             </div>
                         </div>
                     </div>
