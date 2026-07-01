@@ -19,6 +19,29 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+$directCheckoutProductId = filter_var($_GET['product_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+$directCheckoutQuantity = filter_var($_GET['quantity'] ?? 1, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 5]]);
+
+if ($directCheckoutProductId !== false && $directCheckoutProductId !== null) {
+    $_SESSION['direct_checkout'] = [
+        'product_id' => (int) $directCheckoutProductId,
+        'quantity' => ($directCheckoutQuantity === false || $directCheckoutQuantity === null) ? 1 : (int) $directCheckoutQuantity,
+    ];
+}
+
+$directCheckout = [];
+if (isset($_SESSION['direct_checkout']) && is_array($_SESSION['direct_checkout'])) {
+    $storedProductId = filter_var($_SESSION['direct_checkout']['product_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    $storedQuantity = filter_var($_SESSION['direct_checkout']['quantity'] ?? 1, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 5]]);
+
+    if ($storedProductId !== false && $storedProductId !== null) {
+        $directCheckout = [
+            'product_id' => (int) $storedProductId,
+            'quantity' => ($storedQuantity === false || $storedQuantity === null) ? 1 : (int) $storedQuantity,
+        ];
+    }
+}
+
 if (!isset($_SESSION['user_id']) || !is_numeric($_SESSION['user_id']) || (int) $_SESSION['user_id'] <= 0) {
     header('Location: ' . kasi_exchange_url('login.php') . '?return_to=' . urlencode('checkout.php'));
     exit;
@@ -43,6 +66,11 @@ $cart = isset($_SESSION['cart']) && is_array($_SESSION['cart']) ? array_values(a
 $cartQuantities = isset($_SESSION['cart_quantities']) && is_array($_SESSION['cart_quantities']) ? $_SESSION['cart_quantities'] : [];
 $items = [];
 $hubs = [];
+
+if ($directCheckout !== []) {
+    $cart = [$directCheckout['product_id']];
+    $cartQuantities = [$directCheckout['product_id'] => $directCheckout['quantity']];
+}
 
 if ($cart !== []) {
     try {
@@ -294,6 +322,11 @@ unset($_SESSION['flash_success'], $_SESSION['flash_error']);
 
                     <form method="post" action="<?= htmlspecialchars(kasi_exchange_url('checkout_handler.php'), ENT_QUOTES, 'UTF-8') ?>" class="row g-3">
                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string) ($_SESSION['csrf_token'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+
+                        <?php if ($directCheckout !== []): ?>
+                            <input type="hidden" name="direct_product_id" value="<?= htmlspecialchars((string) $directCheckout['product_id'], ENT_QUOTES, 'UTF-8') ?>">
+                            <input type="hidden" name="direct_quantity" value="<?= htmlspecialchars((string) $directCheckout['quantity'], ENT_QUOTES, 'UTF-8') ?>">
+                        <?php endif; ?>
 
                         <div class="col-12">
                             <label for="buyer_name" class="form-label kasi-form-label">Name on card</label>

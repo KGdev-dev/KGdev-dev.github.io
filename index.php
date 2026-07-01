@@ -51,7 +51,7 @@ $allowedSizes = ['all', 'Age 4-5', 'Age 6-7', 'Age 8-9', 'Age 10-11', 'Age 11-12
 $selectedSize = in_array($selectedSize, $allowedSizes, true) ? $selectedSize : 'all';
 
 $buyerProducts = [];
-$productDetailsUrl = kasi_exchange_url('product_details.php');
+$productDetailsUrl = kasi_exchange_url('view_product.php');
 $savedItemsUrl = kasi_exchange_url('saved_items.php');
 $cartUrl = kasi_exchange_url('cart.php');
 $accountUrl = kasi_exchange_url('account.php');
@@ -733,32 +733,17 @@ function kasi_exchange_dashboard_link_label(bool $isLoggedIn): string
 
                                 <p class="text-muted small mb-3"><?= htmlspecialchars(kasi_exchange_product_snippet((string) ($product['description'] ?? '')), ENT_QUOTES, 'UTF-8') ?></p>
 
-                                <form method="post" action="<?= htmlspecialchars(kasi_exchange_url('cart_handler.php'), ENT_QUOTES, 'UTF-8') ?>" class="mb-3">
-                                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
-                                    <input type="hidden" name="product_id" value="<?= htmlspecialchars((string) $productId, ENT_QUOTES, 'UTF-8') ?>">
-                                    <button type="submit" class="btn btn-cta btn-sm">Add to Bag</button>
-                                </form>
+                                <div class="d-grid gap-2 d-sm-flex mb-3">
+                                    <form method="post" action="<?= htmlspecialchars(kasi_exchange_url('cart_handler.php'), ENT_QUOTES, 'UTF-8') ?>" class="flex-grow-1">
+                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+                                        <input type="hidden" name="product_id" value="<?= htmlspecialchars((string) $productId, ENT_QUOTES, 'UTF-8') ?>">
+                                        <button type="submit" class="btn btn-cta btn-sm w-100">Add to Bag</button>
+                                    </form>
 
-                                <div class="kasi-review-list mb-3">
-                                    <?php if ($reviewsForProduct === []): ?>
-                                        <p class="text-muted small mb-0">No reviews yet. Be the first to leave feedback.</p>
-                                    <?php else: ?>
-                                        <?php foreach ($reviewsForProduct as $review): ?>
-                                            <div class="kasi-review-item">
-                                                <div class="d-flex justify-content-between align-items-center gap-3 mb-1">
-                                                    <span class="kasi-review-stars" aria-label="<?= htmlspecialchars((string) ($review['rating'] ?? 0), ENT_QUOTES, 'UTF-8') ?> out of 5 stars"><?= htmlspecialchars(kasi_exchange_review_stars((int) ($review['rating'] ?? 0)), ENT_QUOTES, 'UTF-8') ?></span>
-                                                    <span class="kasi-review-name"><?= htmlspecialchars((string) ($review['reviewer_name'] ?? 'Guest reviewer'), ENT_QUOTES, 'UTF-8') ?></span>
-                                                </div>
-                                                <p class="kasi-review-text"><?= htmlspecialchars((string) ($review['review_text'] ?? ''), ENT_QUOTES, 'UTF-8') ?></p>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
+                                    <a href="<?= htmlspecialchars($detailsUrl, ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary btn-sm flex-grow-1">View</a>
                                 </div>
 
-                                <div class="mt-auto d-flex justify-content-between align-items-center gap-3 pt-2">
-                                    <a href="<?= htmlspecialchars($detailsUrl, ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-dark btn-sm">View Details</a>
-                                    <span class="text-muted small text-uppercase letter-spaced">Premium school resale</span>
-                                </div>
+                                <span class="text-muted small text-uppercase letter-spaced mt-auto">Premium school resale</span>
                             </div>
                         </article>
                     </div>

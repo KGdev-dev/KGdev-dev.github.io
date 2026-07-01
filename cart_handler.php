@@ -25,6 +25,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
 }
 
 $productId = filter_var($_POST['product_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+$requestedQuantity = filter_var($_POST['quantity'] ?? 1, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 5]]);
+$returnTo = trim((string) ($_POST['return_to'] ?? ''));
 $submittedToken = (string) ($_POST['csrf_token'] ?? '');
 
 if (!hash_equals((string) ($_SESSION['csrf_token'] ?? ''), $submittedToken)) {
@@ -54,10 +56,14 @@ $cart = array_values(array_filter(
 
 $quantity = (int) ($_SESSION['cart_quantities'][$productId] ?? 0);
 
+if ($requestedQuantity === false || $requestedQuantity === null) {
+    $requestedQuantity = 1;
+}
+
 if ($quantity <= 0) {
-    $quantity = 1;
+    $quantity = (int) $requestedQuantity;
 } elseif ($quantity < 5) {
-    $quantity++;
+    $quantity += (int) $requestedQuantity;
 }
 
 if (!in_array($productId, $cart, true)) {
@@ -74,6 +80,11 @@ foreach ($_SESSION['cart_quantities'] as $cartQuantity) {
 
 $_SESSION['flash_success'] = 'Item added to your bag.';
 $_SESSION['cart_count'] = $cartCount;
+
+if ($returnTo !== '' && preg_match('/^(index|view_product)\.php(?:\?[A-Za-z0-9_=&%\-]*)?$/', $returnTo) === 1) {
+    header('Location: ' . kasi_exchange_url($returnTo));
+    exit;
+}
 
 header('Location: ' . kasi_exchange_url('index.php'));
 exit;

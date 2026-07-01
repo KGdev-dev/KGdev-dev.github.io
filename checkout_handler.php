@@ -44,6 +44,8 @@ $cardNumber = preg_replace('/\D+/', '', (string) ($_POST['card_number'] ?? ''));
 $cardExpiry = trim((string) ($_POST['card_expiry'] ?? ''));
 $cardCvc = preg_replace('/\D+/', '', (string) ($_POST['card_cvc'] ?? ''));
 $hubId = filter_var($_POST['hub_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+$directProductId = filter_var($_POST['direct_product_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+$directQuantity = filter_var($_POST['direct_quantity'] ?? 1, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 5]]);
 
 if ($buyerName === '' || $buyerEmail === '' || !filter_var($buyerEmail, FILTER_VALIDATE_EMAIL)) {
     $_SESSION['flash_error'] = 'Enter a valid name and email.';
@@ -75,8 +77,15 @@ if ($hubId === false || $hubId === null) {
     exit;
 }
 
-$cart = isset($_SESSION['cart']) && is_array($_SESSION['cart']) ? array_values(array_unique(array_map('intval', $_SESSION['cart']))) : [];
-$cartQuantities = isset($_SESSION['cart_quantities']) && is_array($_SESSION['cart_quantities']) ? $_SESSION['cart_quantities'] : [];
+if ($directProductId !== false && $directProductId !== null) {
+    $cart = [(int) $directProductId];
+    $cartQuantities = [
+        (int) $directProductId => ($directQuantity === false || $directQuantity === null) ? 1 : (int) $directQuantity,
+    ];
+} else {
+    $cart = isset($_SESSION['cart']) && is_array($_SESSION['cart']) ? array_values(array_unique(array_map('intval', $_SESSION['cart']))) : [];
+    $cartQuantities = isset($_SESSION['cart_quantities']) && is_array($_SESSION['cart_quantities']) ? $_SESSION['cart_quantities'] : [];
+}
 
 if ($cart === []) {
     $_SESSION['flash_error'] = 'Your bag is empty.';
@@ -150,9 +159,13 @@ try {
 
     $pdo->commit();
 
-    $_SESSION['cart'] = [];
-    $_SESSION['cart_quantities'] = [];
-    $_SESSION['cart_count'] = 0;
+    if ($directProductId !== false && $directProductId !== null) {
+        unset($_SESSION['direct_checkout']);
+    } else {
+        $_SESSION['cart'] = [];
+        $_SESSION['cart_quantities'] = [];
+        $_SESSION['cart_count'] = 0;
+    }
     $_SESSION['flash_success'] = 'Payment received. Your items are now in escrow.';
 
     header('Location: ' . kasi_exchange_url('cart.php'));
