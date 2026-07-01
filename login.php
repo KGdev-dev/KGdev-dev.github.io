@@ -189,7 +189,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $flashSuccess = (string) ($_SESSION['flash_success'] ?? '');
 unset($_SESSION['flash_success']);
 $csrfToken = kasi_exchange_csrf_token();
-$loginBackgroundUrl = kasi_exchange_url('uploads/uniform_6a0b814de9b746.89990398.jpg');
 
 ?><!doctype html>
 <html lang="en">
@@ -201,183 +200,197 @@ $loginBackgroundUrl = kasi_exchange_url('uploads/uniform_6a0b814de9b746.89990398
     <link href="<?= htmlspecialchars(kasi_exchange_url('custom_theme.css'), ENT_QUOTES, 'UTF-8') ?>" rel="stylesheet">
     <style>
         body.login-shell {
-            background:
-                linear-gradient(135deg, rgba(255, 250, 240, 0.74), rgba(253, 245, 230, 0.84)),
-                url('<?= htmlspecialchars($loginBackgroundUrl, ENT_QUOTES, 'UTF-8') ?>') center/cover fixed no-repeat !important;
+            background: linear-gradient(135deg, #fffaf0 0%, #ffffff 50%, #e8fff4 100%) !important;
         }
 
         .login-page {
             min-height: 100vh;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.8rem;
         }
 
-        .login-page::before,
-        .login-page::after {
-            content: '';
-            position: absolute;
-            border-radius: 999px;
-            filter: blur(6px);
-            pointer-events: none;
+        .login-panel {
+            min-height: 100vh;
+            padding: 2rem;
         }
 
-        .login-page::before {
-            width: 320px;
-            height: 320px;
-            top: -80px;
-            right: -90px;
-            background: rgba(255, 140, 0, 0.14);
+        .login-panel-left {
+            background: linear-gradient(160deg, rgba(255, 250, 240, 0.98), rgba(255, 255, 255, 0.94));
         }
 
-        .login-page::after {
-            width: 260px;
-            height: 260px;
-            left: -90px;
-            bottom: -70px;
-            background: rgba(152, 251, 152, 0.14);
+        .login-panel-right {
+            background: linear-gradient(160deg, rgba(232, 255, 244, 0.96), rgba(221, 250, 235, 0.98));
         }
 
-        .login-stage {
-            position: relative;
-            z-index: 1;
-            width: min(100%, 520px);
+        .login-card,
+        .brand-card {
+            width: min(100%, 460px);
         }
 
-        .login-shell-card {
-            border: 1px solid rgba(255, 218, 185, 0.36);
-            border-radius: 26px;
-            overflow: hidden;
-            background: rgba(255, 250, 240, 0.72);
+        .login-card {
+            background: rgba(255, 255, 255, 0.86);
+            border: 1px solid rgba(255, 218, 185, 0.55);
+            border-radius: 28px;
+            box-shadow: 0 22px 60px rgba(66, 46, 28, 0.12);
             backdrop-filter: blur(16px);
-            box-shadow: 0 22px 52px rgba(66, 46, 28, 0.14);
         }
 
-        .login-form-card {
-            background: rgba(255, 255, 255, 0.82);
+        .brand-card {
+            background: rgba(255, 255, 255, 0.58);
+            border: 1px solid rgba(152, 251, 152, 0.28);
+            border-radius: 28px;
+            box-shadow: 0 18px 50px rgba(40, 88, 61, 0.12);
+            backdrop-filter: blur(12px);
         }
 
-        .floating-field .form-control {
-            padding-top: 1.5rem;
-            padding-bottom: 0.55rem;
-        }
-
-        .floating-field .form-label {
-            color: #8b7767;
-        }
-
-        .login-focus-card {
-        .welcome-tag {
+        .login-kicker {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.45rem 0.85rem;
+            padding: 0.45rem 0.8rem;
             border-radius: 999px;
             background: rgba(255, 140, 0, 0.12);
             color: #9a5600;
             font-weight: 700;
-            letter-spacing: 0.01em;
         }
 
-        .login-center {
-            text-align: center;
-        }
-
-        .login-center .form-floating > .form-control,
-        .login-center .form-floating > label {
-            text-align: left;
+        .split-title {
+            letter-spacing: -0.03em;
         }
 
         .qa-pill {
             border-radius: 999px !important;
-            padding-inline: 0.8rem;
-            border-color: rgba(255, 140, 0, 0.22) !important;
+            border-color: rgba(255, 140, 0, 0.24) !important;
+            color: #6b5748 !important;
         }
 
-        .btn-compact {
-            padding: 0.6rem 1rem !important;
-            min-height: 42px;
-            font-size: 0.94rem;
-            max-width: 160px;
-            margin-inline: auto;
+        .qa-pill:hover,
+        .qa-pill:focus {
+            background: rgba(255, 250, 240, 0.95) !important;
+            color: #3e352d !important;
+            border-color: rgba(255, 140, 0, 0.42) !important;
+        }
+
+        .step-chip {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 999px;
+            background: rgba(255, 140, 0, 0.16);
+            color: #9a5600;
+            font-weight: 800;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            flex: 0 0 auto;
         }
 
-        .login-compact {
-            max-width: 320px;
-            margin: 0 auto;
+        .brand-copy {
+            color: #5f5146;
         }
 
-        @media (max-width: 991.98px) {
-            .login-focus-card {
+        @media (max-width: 767.98px) {
+            .login-panel {
                 min-height: auto;
-                max-width: 100%;
+                padding: 1.25rem;
             }
 
-            .login-page {
-                padding: 0.75rem;
+            .login-card,
+            .brand-card {
+                width: 100%;
             }
         }
     </style>
 </head>
 <body class="login-shell">
-<main class="login-page">
-    <div class="login-stage">
-        <div class="login-focus-card">
-            <div class="login-shell-card h-100">
-                <div class="login-form-card p-3 p-md-4 h-100 d-flex align-items-center">
-                    <div class="w-100 login-compact login-center">
-                        <div class="mb-3">
-                            <h2 class="h4 mb-2">Log in</h2>
-                            <div class="welcome-tag mb-2">Welcome back to Kasi Exchange</div>
-                        </div>
-
-            <?php if ($flashSuccess !== ''): ?>
-                <div class="alert alert-success" role="alert"><?= htmlspecialchars($flashSuccess, ENT_QUOTES, 'UTF-8') ?></div>
-            <?php endif; ?>
-
-            <?php if ($errors !== []): ?>
-                <div class="alert alert-danger" role="alert">
-                    <ul class="mb-0">
-                        <?php foreach ($errors as $error): ?>
-                            <li><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></li>
-                        <?php endforeach; ?>
-                    </ul>
+<main class="login-page container-fluid p-0">
+    <div class="row g-0 min-vh-100">
+        <div class="col-md-6 login-panel login-panel-left d-flex align-items-center justify-content-center">
+            <div class="login-card p-4 p-lg-5">
+                <div class="mb-4">
+                    <div class="login-kicker mb-3">Welcome back to Kasi Exchange</div>
+                    <h1 class="display-6 fw-bold split-title mb-2">Log in</h1>
+                    <p class="mb-0 text-muted">Sign in to continue browsing, saving items, and checking out.</p>
                 </div>
-            <?php endif; ?>
 
-                        <form method="post" action="login.php" novalidate>
-                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
-                            <input type="hidden" name="return_to" value="<?= htmlspecialchars($returnTo, ENT_QUOTES, 'UTF-8') ?>">
-                            <div class="floating-field form-floating mb-3">
-                                <input type="email" class="form-control" id="email" name="email" value="<?= htmlspecialchars($email, ENT_QUOTES, 'UTF-8') ?>" placeholder="name@example.com" required autocomplete="email">
-                                <label for="email" class="form-label">Email</label>
-                            </div>
-                            <div class="floating-field form-floating mb-3">
-                                <input type="password" class="form-control" id="password" name="password" placeholder="Password" required autocomplete="current-password">
-                                <label for="password" class="form-label">Password</label>
-                            </div>
-                            <div class="text-center">
-                                <button type="submit" class="btn btn-cta btn-compact">Log in</button>
-                            </div>
-                        </form>
+                <?php if ($flashSuccess !== ''): ?>
+                    <div class="alert alert-success" role="alert"><?= htmlspecialchars($flashSuccess, ENT_QUOTES, 'UTF-8') ?></div>
+                <?php endif; ?>
 
-                        <div class="mt-3">
-                            <a href="register.php" class="link-secondary text-decoration-none fw-semibold">Need an account? Register</a>
+                <?php if ($errors !== []): ?>
+                    <div class="alert alert-danger" role="alert">
+                        <ul class="mb-0 ps-3">
+                            <?php foreach ($errors as $error): ?>
+                                <li><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                <?php endif; ?>
+
+                <form method="post" action="login.php" novalidate>
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+                    <input type="hidden" name="return_to" value="<?= htmlspecialchars($returnTo, ENT_QUOTES, 'UTF-8') ?>">
+                    <div class="form-floating mb-3">
+                        <input type="email" class="form-control" id="email" name="email" value="<?= htmlspecialchars($email, ENT_QUOTES, 'UTF-8') ?>" placeholder="name@example.com" required autocomplete="email">
+                        <label for="email">Email</label>
+                    </div>
+                    <div class="form-floating mb-4">
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Password" required autocomplete="current-password">
+                        <label for="password">Password</label>
+                    </div>
+                    <button type="submit" class="btn btn-cta w-100 py-3">Log in</button>
+                </form>
+
+                <div class="mt-3">
+                    <a href="register.php" class="link-secondary text-decoration-none fw-semibold">Need an account? Register</a>
+                </div>
+
+                <div class="mt-4 pt-4 border-top">
+                    <div class="small text-uppercase fw-semibold text-muted mb-3">QA Test Accounts</div>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-outline-secondary qa-pill text-start" data-qa-email="sipho@kasi.com" data-qa-password="password123">Buyer - Sipho</button>
+                        <button type="button" class="btn btn-outline-secondary qa-pill text-start" data-qa-email="thabo@kasi.com" data-qa-password="password123">Seller - Thabo</button>
+                        <button type="button" class="btn btn-outline-secondary qa-pill text-start" data-qa-email="vusi@kasi.com" data-qa-password="password123">Hub Agent - Vusi</button>
+                        <button type="button" class="btn btn-outline-secondary qa-pill text-start" data-qa-email="admin@kasi.com" data-qa-password="password123">Admin - God Mode</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 login-panel login-panel-right d-flex align-items-center justify-content-center">
+            <div class="brand-card p-4 p-lg-5">
+                <div class="mb-4">
+                    <p class="kasi-eyebrow mb-2">Kasi Exchange</p>
+                    <h2 class="display-6 fw-bold split-title mb-3">About Us</h2>
+                    <p class="brand-copy mb-0">A simple place to buy, sell, and discover local finds with a clean shopping experience built for the Kasi community.</p>
+                </div>
+
+                <div>
+                    <h3 class="h5 fw-bold mb-3">How it works</h3>
+                    <div class="d-grid gap-3">
+                        <div class="d-flex gap-3 align-items-start">
+                            <span class="step-chip">1</span>
+                            <div>
+                                <div class="fw-semibold">Create an account</div>
+                                <div class="text-muted">Sign up or use a test account to get started fast.</div>
+                            </div>
                         </div>
-
-                        <div class="border-top mt-3 pt-3 small text-muted">
-                            <div class="text-uppercase mb-2 fw-semibold text-center">QA Test Accounts</div>
-                            <div class="d-grid gap-2">
-                                <button type="button" class="btn btn-outline-secondary btn-sm qa-pill w-100" data-qa-email="sipho@kasi.com" data-qa-password="password123">Autofill Buyer (Sipho)</button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm qa-pill w-100" data-qa-email="thabo@kasi.com" data-qa-password="password123">Autofill Seller (Thabo)</button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm qa-pill w-100" data-qa-email="vusi@kasi.com" data-qa-password="password123">Autofill Hub Agent (Vusi)</button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm qa-pill w-100" data-qa-email="admin@kasi.com" data-qa-password="password123">Autofill Admin (God Mode)</button>
+                        <div class="d-flex gap-3 align-items-start">
+                            <span class="step-chip">2</span>
+                            <div>
+                                <div class="fw-semibold">Browse products</div>
+                                <div class="text-muted">Explore items from local sellers in one clean catalog.</div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3 align-items-start">
+                            <span class="step-chip">3</span>
+                            <div>
+                                <div class="fw-semibold">Add to bag</div>
+                                <div class="text-muted">Save items, choose a quantity, and keep shopping.</div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3 align-items-start">
+                            <span class="step-chip">4</span>
+                            <div>
+                                <div class="fw-semibold">Checkout securely</div>
+                                <div class="text-muted">Finish your order with a smooth checkout flow.</div>
                             </div>
                         </div>
                     </div>
@@ -385,6 +398,7 @@ $loginBackgroundUrl = kasi_exchange_url('uploads/uniform_6a0b814de9b746.89990398
             </div>
         </div>
     </div>
+
 </main>
 
 <script>
