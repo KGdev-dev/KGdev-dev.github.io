@@ -1,0 +1,943 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kasi Exchange | Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="./custom_theme.css" rel="stylesheet">
+    <style>
+        .catalog-shell {
+            position: relative;
+            width: min(100%, 320px);
+            height: 470px;
+            margin: 0 auto;
+        }
+
+        .catalog-item {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            transition: transform 280ms ease, opacity 280ms ease, box-shadow 280ms ease;
+            will-change: transform, opacity;
+            touch-action: pan-y;
+        }
+
+        .catalog-card {
+            height: 100%;
+            border: 0;
+            border-radius: 1.35rem;
+            overflow: hidden;
+            box-shadow: 0 1rem 2rem rgba(15, 23, 42, 0.1);
+            background: #fff;
+        }
+
+        .catalog-item[data-depth="0"] {
+            transform: translateY(0) scale(1);
+            z-index: 4;
+            opacity: 1;
+        }
+
+        .catalog-item[data-depth="1"] {
+            transform: translateY(14px) scale(0.965);
+            z-index: 3;
+            opacity: 0.95;
+        }
+
+        .catalog-item[data-depth="2"] {
+            transform: translateY(28px) scale(0.93);
+            z-index: 2;
+            opacity: 0.9;
+        }
+
+        .catalog-item[data-depth="3"] {
+            transform: translateY(42px) scale(0.895);
+            z-index: 1;
+            opacity: 0.85;
+        }
+
+        .catalog-image {
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            background: #f1f5f9;
+        }
+
+        .catalog-gesture-badge {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            z-index: 5;
+            letter-spacing: 0.12em;
+        }
+
+        .catalog-stack-stage {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 520px;
+        }
+
+        .catalog-card-shell {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .catalog-card-shell .catalog-card-action {
+            top: 0.85rem;
+        }
+
+        .catalog-card-shell .catalog-gesture-badge {
+            top: 0.85rem;
+        }
+
+        .catalog-card .card-body {
+            padding: 1rem !important;
+        }
+
+        .catalog-card .card-body h2 {
+            font-size: 1.05rem;
+        }
+
+        .catalog-card .card-body .text-muted.small {
+            font-size: 0.78rem;
+        }
+
+        .catalog-card .fs-5 {
+            font-size: 0.95rem !important;
+        }
+
+        .catalog-card .catalog-card-action.btn-sm {
+            padding: 0.32rem 0.7rem;
+            font-size: 0.76rem;
+        }
+
+        .catalog-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+            text-align: center;
+        }
+
+        .catalog-title-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--kasi-orange);
+            box-shadow: 0 0 0 4px rgba(255, 140, 0, 0.12);
+            flex: 0 0 auto;
+        }
+
+        .catalog-size-text {
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--kasi-muted);
+            white-space: nowrap;
+        }
+
+        .catalog-action-hint {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--kasi-muted);
+        }
+
+        .catalog-action-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--kasi-orange);
+            box-shadow: 0 0 0 4px rgba(255, 140, 0, 0.12);
+            flex: 0 0 auto;
+        }
+
+        .empty-refresh {
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .empty-refresh-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.45rem 0.85rem;
+            border-radius: 999px;
+            background: rgba(255, 140, 0, 0.12);
+            color: #c86800;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            box-shadow: 0 10px 18px rgba(255, 140, 0, 0.12);
+        }
+
+        .empty-refresh-action {
+            margin-top: 0.65rem;
+            min-width: 120px;
+            min-height: 38px;
+            padding: 0.45rem 0.85rem;
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+        }
+
+        .catalog-card.is-dragging {
+            transition: none;
+            cursor: grabbing;
+        }
+
+        .catalog-card.is-swiping-out {
+            transition: transform 260ms ease, opacity 260ms ease;
+        }
+
+        .catalog-card-action {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 5;
+        }
+
+        .status-circle {
+            width: 104px;
+            height: 104px;
+            margin: 0 0 1rem auto;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: rgba(255, 250, 240, 0.9);
+            border: 1px solid rgba(255, 218, 185, 0.38);
+            box-shadow: 0 12px 26px rgba(66, 46, 28, 0.08);
+        }
+
+        .status-circle .status-label {
+            font-size: 0.62rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--kasi-muted);
+            margin-bottom: 0.2rem;
+        }
+
+        .status-circle .status-role {
+            font-size: 0.88rem;
+            font-weight: 800;
+            line-height: 1.1;
+            text-transform: capitalize;
+        }
+
+        .action-cluster {
+            max-width: 520px;
+            margin: 0 auto 1rem;
+        }
+
+        .action-short {
+            width: 100%;
+            max-width: 220px;
+            min-height: 48px;
+            padding-inline: 1rem;
+        }
+
+        .kasi-home-shell {
+            max-width: 1180px;
+        }
+
+        .kasi-topbar {
+            padding-top: 0.25rem;
+        }
+
+        .kasi-eyebrow {
+            font-size: 0.72rem;
+            letter-spacing: 0.32em;
+            text-transform: uppercase;
+            color: var(--kasi-muted);
+        }
+
+        .kasi-home-title {
+            font-size: clamp(2rem, 3vw, 3.2rem);
+            line-height: 0.96;
+            letter-spacing: -0.03em;
+        }
+
+        .kasi-search-inline {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            flex: 1 1 560px;
+            min-width: 0;
+        }
+
+        .kasi-search-input {
+            border: 0 !important;
+            border-bottom: 1px solid rgba(133, 119, 106, 0.28) !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            background: transparent !important;
+            padding-left: 0;
+            padding-right: 0;
+            min-height: 44px;
+            font-size: 0.96rem;
+            letter-spacing: 0.02em;
+        }
+
+        .kasi-search-input::placeholder {
+            color: rgba(133, 119, 106, 0.72);
+        }
+
+        .kasi-search-input:focus,
+        .kasi-filter-select:focus {
+            box-shadow: none !important;
+            border-color: rgba(255, 140, 0, 0.65) !important;
+        }
+
+        .kasi-filter-select {
+            min-height: 44px;
+            border: 0 !important;
+            border-bottom: 1px solid rgba(133, 119, 106, 0.28) !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            background: transparent !important;
+            color: var(--kasi-text);
+            font-size: 0.9rem;
+        }
+
+        .kasi-action-links {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 1.15rem;
+            flex-wrap: wrap;
+        }
+
+        .kasi-inline-link {
+            color: var(--kasi-text);
+            text-decoration: none;
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            transition: color 160ms ease, opacity 160ms ease;
+        }
+
+        .kasi-inline-link:hover,
+        .kasi-inline-link:focus {
+            color: var(--kasi-orange);
+            opacity: 1;
+        }
+
+        .kasi-bag-link {
+            white-space: nowrap;
+        }
+
+        .kasi-nav-link-primary {
+            letter-spacing: 0.22em;
+        }
+
+        .kasi-save-btn {
+            position: absolute;
+            top: 0.85rem;
+            right: 0.85rem;
+            z-index: 2;
+            width: 2.25rem;
+            height: 2.25rem;
+            border: 0;
+            border-radius: 999px;
+            background: rgba(255, 250, 240, 0.86);
+            color: #85776a;
+            box-shadow: 0 10px 24px rgba(66, 46, 28, 0.12);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: transform 160ms ease, color 160ms ease, background-color 160ms ease;
+        }
+
+        .kasi-save-btn:hover,
+        .kasi-save-btn:focus {
+            transform: translateY(-1px);
+            color: #c1535b;
+        }
+
+        .kasi-save-btn.is-saved {
+            background: rgba(255, 228, 232, 0.95);
+            color: #c43c4c;
+        }
+
+        .kasi-product-media {
+            position: relative;
+        }
+
+        .kasi-product-grid {
+            padding-top: 1.75rem;
+        }
+
+        .kasi-product-card {
+            border: 0;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            background: rgba(255, 250, 240, 0.86);
+            box-shadow: 0 14px 34px rgba(66, 46, 28, 0.1);
+            height: 100%;
+        }
+
+        .kasi-product-image {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            background: rgba(241, 245, 249, 0.9);
+        }
+
+        .kasi-product-meta {
+            font-size: 0.7rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--kasi-muted);
+        }
+
+        .kasi-review-list {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .kasi-review-item {
+            padding-top: 0.7rem;
+            border-top: 1px solid rgba(255, 218, 185, 0.55);
+        }
+
+        .kasi-review-stars {
+            font-size: 0.72rem;
+            letter-spacing: 0.14em;
+            color: #b77a12;
+        }
+
+        .kasi-review-name {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--kasi-muted);
+        }
+
+        .kasi-review-text {
+            margin: 0;
+            font-size: 0.88rem;
+            line-height: 1.48;
+            color: var(--kasi-text);
+        }
+
+        .kasi-empty-state {
+            min-height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .catalog-stack-stage {
+                min-height: 560px;
+            }
+
+            .catalog-shell {
+                width: min(100%, 340px);
+                height: 500px;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .catalog-stack-stage {
+                min-height: 620px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light">
+<main class="container py-5 kasi-home-shell">
+    <header class="kasi-topbar mb-4 mb-lg-5">
+        <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-3 gap-lg-4">
+            <div class="flex-shrink-0">
+                <p class="kasi-eyebrow mb-2">Kasi Exchange</p>
+            </div>
+
+            <form method="get" action="./index.php" class="kasi-search-inline flex-grow-1">
+                <div class="flex-grow-1">
+                    <label for="q" class="visually-hidden">Search school uniforms</label>
+                    <input type="text" class="form-control kasi-search-input" id="q" name="q" value="" placeholder="Search school uniforms...">
+                </div>
+                <div class="flex-shrink-0" style="min-width: 138px;">
+                    <label for="size" class="visually-hidden">Filter by size</label>
+                    <select class="form-select kasi-filter-select" id="size" name="size">
+                        <option value="all" selected>All Sizes</option>
+                                                    <option value="Age 4-5" >Age 4-5</option>
+                                                    <option value="Age 6-7" >Age 6-7</option>
+                                                    <option value="Age 8-9" >Age 8-9</option>
+                                                    <option value="Age 10-11" >Age 10-11</option>
+                                                    <option value="Age 11-12" >Age 11-12</option>
+                                                    <option value="Small" >Small</option>
+                                                    <option value="Medium" >Medium</option>
+                                                    <option value="Large" >Large</option>
+                                                    <option value="XL" >XL</option>
+                                            </select>
+                </div>
+            </form>
+
+            <div class="kasi-action-links ms-lg-auto">
+                <a href="./login.php" class="kasi-inline-link kasi-nav-link-primary">Sign In</a>
+                <a href="./cart.php" class="kasi-inline-link kasi-bag-link">Bag (0)</a>
+                <a href="./saved_items.php" class="kasi-inline-link">Saved Items</a>
+            </div>
+        </div>
+    </header>
+
+    
+    <section class="kasi-product-grid pb-4 pb-lg-5">
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+                                                        <div class="col">
+                        <article class="kasi-product-card">
+                            <div class="kasi-product-media">
+                                <a href="./product_details.php?id=6" class="d-block">
+                                    <img src="./uploads/uniform_6a1051bf7a99b9.86989597.jpg" class="kasi-product-image" alt="Monitor School Shirts Short Sleeves– Blue">
+                                </a>
+                                <button type="button" class="kasi-save-btn" data-save-heart data-product-id="6" aria-pressed="false" aria-label="Save for later">
+                                    ♡                                </button>
+                            </div>
+                            <div class="p-4 d-flex flex-column h-100">
+                                <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                                    <div>
+                                        <div class="kasi-product-meta mb-1">11-12</div>
+                                        <h2 class="h5 mb-1">Monitor School Shirts Short Sleeves– Blue</h2>
+                                    </div>
+                                    <strong class="fs-5 text-dark">R 119.00</strong>
+                                </div>
+
+                                <p class="text-muted small mb-3">Discover our Monitor School Shirts Short Sleeves – Blue by the uniform connection. Available in…</p>
+
+                                <div class="kasi-review-list mb-3">
+                                                                            <p class="text-muted small mb-0">No reviews yet. Be the first to leave feedback.</p>
+                                                                    </div>
+
+                                <div class="mt-auto d-flex justify-content-between align-items-center gap-3 pt-2">
+                                    <a href="./product_details.php?id=6" class="btn btn-outline-dark btn-sm">View Details</a>
+                                    <span class="text-muted small text-uppercase letter-spaced">Premium school resale</span>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                                                        <div class="col">
+                        <article class="kasi-product-card">
+                            <div class="kasi-product-media">
+                                <a href="./product_details.php?id=5" class="d-block">
+                                    <img src="./uploads/uniform_6a10505b6a3465.90322809.jpg" class="kasi-product-image" alt="School Uniform V-Neck Jersey">
+                                </a>
+                                <button type="button" class="kasi-save-btn" data-save-heart data-product-id="5" aria-pressed="false" aria-label="Save for later">
+                                    ♡                                </button>
+                            </div>
+                            <div class="p-4 d-flex flex-column h-100">
+                                <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                                    <div>
+                                        <div class="kasi-product-meta mb-1">age 7-8</div>
+                                        <h2 class="h5 mb-1">School Uniform V-Neck Jersey</h2>
+                                    </div>
+                                    <strong class="fs-5 text-dark">R 180.00</strong>
+                                </div>
+
+                                <p class="text-muted small mb-3">School Uniform V-Neck Jersey, Navy Blue with Light Blue Stripes, Long Sleeve (Navy and Light Bl…</p>
+
+                                <div class="kasi-review-list mb-3">
+                                                                            <p class="text-muted small mb-0">No reviews yet. Be the first to leave feedback.</p>
+                                                                    </div>
+
+                                <div class="mt-auto d-flex justify-content-between align-items-center gap-3 pt-2">
+                                    <a href="./product_details.php?id=5" class="btn btn-outline-dark btn-sm">View Details</a>
+                                    <span class="text-muted small text-uppercase letter-spaced">Premium school resale</span>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                                                        <div class="col">
+                        <article class="kasi-product-card">
+                            <div class="kasi-product-media">
+                                <a href="./product_details.php?id=3" class="d-block">
+                                    <img src="./uploads/grey-school-trousers.jpg" class="kasi-product-image" alt="Grey School Trousers">
+                                </a>
+                                <button type="button" class="kasi-save-btn" data-save-heart data-product-id="3" aria-pressed="false" aria-label="Save for later">
+                                    ♡                                </button>
+                            </div>
+                            <div class="p-4 d-flex flex-column h-100">
+                                <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                                    <div>
+                                        <div class="kasi-product-meta mb-1">Age 10-11</div>
+                                        <h2 class="h5 mb-1">Grey School Trousers</h2>
+                                    </div>
+                                    <strong class="fs-5 text-dark">R 140.00</strong>
+                                </div>
+
+                                <p class="text-muted small mb-3">Durable grey school trousers with a clean finish and comfortable fit for regular school use.</p>
+
+                                <div class="kasi-review-list mb-3">
+                                                                            <p class="text-muted small mb-0">No reviews yet. Be the first to leave feedback.</p>
+                                                                    </div>
+
+                                <div class="mt-auto d-flex justify-content-between align-items-center gap-3 pt-2">
+                                    <a href="./product_details.php?id=3" class="btn btn-outline-dark btn-sm">View Details</a>
+                                    <span class="text-muted small text-uppercase letter-spaced">Premium school resale</span>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                            </div>
+            </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function () {
+        // Hubs data + CSRF token from server
+        const KASI_HUBS = [{"id":1,"hub_name":"Lindiwe Spaza","address":""},{"id":2,"hub_name":"Orlando East Main Depot","address":"Behind the Community Hall, near the main taxi rank, next to the green water tower."}];
+        const KASI_CSRF = "32c3ad1f178539e267fe67e2db64d8ce8a9a69c3efe4909e";
+    const KASI_SAVED_PRODUCT_IDS = [];
+
+        const escapeHtml = (str) => String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+
+        // Create modal markup and append to body (Bootstrap 5)
+        const createBuyModal = () => {
+                const modal = document.createElement('div');
+                modal.innerHTML = `
+                <div class="modal fade" id="kasiBuyModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirm Secure Escrow Purchase</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Select Spaza Hub</label>
+                                    <select id="kasiHubSelect" class="form-select">
+                                        ${KASI_HUBS.map(h => `<option value="${h.id}">${escapeHtml(h.hub_name)} — ${escapeHtml(h.address)}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <input type="hidden" id="kasiSelectedProductId" value="">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-cta" id="kasiConfirmBuy">Confirm Secure Escrow Purchase</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+
+                document.body.appendChild(modal);
+        };
+
+        createBuyModal();
+
+    const saveButtons = Array.from(document.querySelectorAll('[data-save-heart]'));
+    const bagLink = document.querySelector('.kasi-bag-link');
+
+    const updateBagCount = (count) => {
+        if (bagLink) {
+            bagLink.textContent = `Bag (${count})`;
+        }
+    };
+
+    const toggleHeartState = (button, isSaved) => {
+        button.classList.toggle('is-saved', isSaved);
+        button.setAttribute('aria-pressed', isSaved ? 'true' : 'false');
+        button.textContent = isSaved ? '♥' : '♡';
+    };
+
+    saveButtons.forEach((button) => {
+        button.addEventListener('click', async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const productId = button.dataset.productId || '';
+
+            try {
+                button.disabled = true;
+                const response = await fetch('toggle_save.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ product_id: productId, csrf_token: KASI_CSRF })
+                });
+
+                const data = await response.json();
+                if (data && data.success) {
+                    toggleHeartState(button, !!data.saved);
+                    if (typeof data.saved_count === 'number') {
+                        updateBagCount(data.saved_count);
+                    }
+                } else {
+                    alert((data && data.message) || 'Unable to save item right now.');
+                }
+            } catch (error) {
+                alert('Network error: ' + String(error));
+            } finally {
+                button.disabled = false;
+            }
+        });
+    });
+
+    KASI_SAVED_PRODUCT_IDS.forEach((productId) => {
+        const button = document.querySelector(`[data-save-heart][data-product-id="${productId}"]`);
+        if (button) {
+            toggleHeartState(button, true);
+        }
+    });
+
+    const stack = document.querySelector('[data-catalog-stack]');
+    if (!stack) {
+        return;
+    }
+
+    const cards = Array.from(stack.querySelectorAll('.catalog-item'));
+    if (!cards.length) {
+        return;
+    }
+
+    let activeCard = null;
+    let startX = 0;
+    let startY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let dragging = false;
+    let rafPending = false;
+
+    const updateDeck = () => {
+        const visibleCards = cards.filter((card) => !card.classList.contains('is-hidden'));
+        visibleCards.forEach((card, index) => {
+            card.dataset.depth = String(index > 3 ? 3 : index);
+            card.style.pointerEvents = index === 0 ? 'auto' : 'none';
+        });
+    };
+
+    const setTransform = (card, x, y) => {
+        const rotation = Math.max(-18, Math.min(18, x / 18));
+        card.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rotation}deg)`;
+    };
+
+    const hideCard = (card) => {
+        card.classList.add('is-hidden');
+        card.style.display = 'none';
+        activeCard = null;
+        updateDeck();
+    };
+
+    const animateOut = (card, direction, navigateUrl) => {
+        card.classList.add('is-swiping-out');
+        card.style.transform = `translate3d(${direction * (window.innerWidth + 320)}px, 0, 0) rotate(${direction * 18}deg)`;
+        card.style.opacity = '0';
+
+        window.setTimeout(() => {
+            if (navigateUrl) {
+                window.location.href = navigateUrl;
+                return;
+            }
+
+            hideCard(card);
+        }, 220);
+    };
+
+    const onMove = (clientX, clientY) => {
+        if (!dragging || !activeCard) {
+            return;
+        }
+
+        currentX = clientX - startX;
+        currentY = clientY - startY;
+
+        if (rafPending) {
+            return;
+        }
+
+        rafPending = true;
+        window.requestAnimationFrame(() => {
+            rafPending = false;
+            if (activeCard) {
+                setTransform(activeCard, currentX, currentY * 0.18);
+            }
+        });
+    };
+
+    const endDrag = () => {
+        if (!dragging || !activeCard) {
+            return;
+        }
+
+        const threshold = Math.max(120, window.innerWidth * 0.18);
+        const productUrl = activeCard.dataset.detailsUrl || '';
+        const direction = currentX >= 0 ? 1 : -1;
+
+        dragging = false;
+        activeCard.classList.remove('is-dragging');
+
+        if (Math.abs(currentX) >= threshold) {
+            if (currentX > 0) {
+                // Right swipe -> open buy confirmation modal
+                const pid = activeCard.dataset.productId || '';
+                showConfirmModalForProduct(pid, activeCard);
+                return;
+            }
+
+            // Left swipe -> simply remove card
+            animateOut(activeCard, direction, '');
+            return;
+        }
+
+        activeCard.style.transition = 'transform 220ms ease, opacity 220ms ease';
+        activeCard.style.transform = '';
+        activeCard.style.opacity = '';
+        window.setTimeout(() => {
+            if (activeCard) {
+                activeCard.style.transition = '';
+            }
+        }, 240);
+    };
+
+    const showConfirmModalForProduct = (productId, cardElement) => {
+        const modalEl = document.getElementById('kasiBuyModal');
+        if (!modalEl) return;
+
+        const selectedInput = document.getElementById('kasiSelectedProductId');
+        selectedInput.value = String(productId);
+
+        const bsModal = new bootstrap.Modal(modalEl);
+        bsModal.show();
+
+        const confirmBtn = document.getElementById('kasiConfirmBuy');
+        const hubSelect = document.getElementById('kasiHubSelect');
+
+        const onConfirm = async () => {
+            const hubId = hubSelect.value;
+            try {
+                confirmBtn.disabled = true;
+                const res = await fetch('buy_handler.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ product_id: productId, hub_id: hubId, csrf_token: KASI_CSRF })
+                });
+
+                const data = await res.json();
+                if (data && data.success) {
+                    bsModal.hide();
+                    animateOut(cardElement, 1, '');
+                    // show flash banner
+                    showFlash(data.message || 'Purchase committed via escrow');
+                } else {
+                    alert((data && data.message) || 'Failed to create escrow transaction');
+                }
+            } catch (err) {
+                alert('Network error: ' + String(err));
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.removeEventListener('click', onConfirm);
+            }
+        };
+
+        confirmBtn.removeEventListener('click', onConfirm);
+        confirmBtn.addEventListener('click', onConfirm);
+    };
+
+    const showFlash = (msg) => {
+        const container = document.querySelector('main.container');
+        if (!container) return;
+        const el = document.createElement('div');
+        el.className = 'alert alert-success';
+        el.textContent = msg;
+        container.insertBefore(el, container.firstChild);
+        setTimeout(() => el.remove(), 6000);
+    };
+
+    const bindCard = (card) => {
+        card.addEventListener('mousedown', (event) => {
+            if (card.classList.contains('is-hidden')) {
+                return;
+            }
+
+            activeCard = card;
+            dragging = true;
+            startX = event.clientX;
+            startY = event.clientY;
+            currentX = 0;
+            currentY = 0;
+            card.classList.add('is-dragging');
+            card.style.zIndex = '10';
+            event.preventDefault();
+        });
+
+        card.addEventListener('touchstart', (event) => {
+            if (card.classList.contains('is-hidden')) {
+                return;
+            }
+
+            const touch = event.changedTouches[0];
+            activeCard = card;
+            dragging = true;
+            startX = touch.clientX;
+            startY = touch.clientY;
+            currentX = 0;
+            currentY = 0;
+            card.classList.add('is-dragging');
+            card.style.zIndex = '10';
+            event.preventDefault();
+        }, { passive: true });
+    };
+
+    document.addEventListener('mousemove', (event) => {
+        if (!dragging) {
+            return;
+        }
+
+        onMove(event.clientX, event.clientY);
+    });
+
+    document.addEventListener('touchmove', (event) => {
+        if (!dragging) {
+            return;
+        }
+
+        const touch = event.touches[0];
+        onMove(touch.clientX, touch.clientY);
+        event.preventDefault();
+    }, { passive: false });
+
+    document.addEventListener('mouseup', endDrag);
+    document.addEventListener('touchend', endDrag);
+
+    cards.forEach((card) => bindCard(card));
+    // Attach Buy button handlers
+    document.querySelectorAll('.btn-buy').forEach(btn => {
+        btn.addEventListener('click', (ev) => {
+            const pid = btn.dataset.productId || '';
+            const card = btn.closest('.catalog-item');
+            showConfirmModalForProduct(pid, card);
+        });
+    });
+
+    updateDeck();
+})();
+</script>
+</body>
+</html>

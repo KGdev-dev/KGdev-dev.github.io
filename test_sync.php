@@ -1,0 +1,1 @@
+<?php echo "<h1 style='color: green; text-align: center; margin-top: 50px;'>🚀 LIVE VS CODE CONNECTION IS WORKING! 🚀</h1>"; ?>

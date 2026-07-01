@@ -1,0 +1,32 @@
+{\rtf1\ansi\deff0{\fonttbl{\f0 Arial;}}
+\fs24
+\b Kasi Exchange CRC Cards\b0\par
+\par
+\trowd\trgaph108\trleft0\cellx2000\cellx9000\cellx12000
+\intbl\b Class Name\b0\cell\intbl\b Responsibilities\b0\cell\intbl\b Collaborators\b0\cell\row
+
+\trowd\trgaph108\trleft0\cellx2000\cellx9000\cellx12000
+\intbl User\cell\intbl \u8226? Register as buyer, seller, admin, or hub agent\line\u8226? Authenticate with email and password\line\u8226? Store profile, role, and session identity\cell\intbl DatabaseConnection, AuthSession, Register, Login, AdminDashboard\cell\row
+
+\trowd\trgaph108\trleft0\cellx2000\cellx9000\cellx12000
+\intbl Product\cell\intbl \u8226? Store uniform listing details\line\u8226? Track status changes: available, escrow, sold\line\u8226? Link each item to a seller\line\u8226? Keep image, price, size, and description data\cell\intbl User, UploadProduct, SellerDashboard, ProductDetails, Cart, Checkout, Transaction\cell\row
+
+\trowd\trgaph108\trleft0\cellx2000\cellx9000\cellx12000
+\intbl Transaction\cell\intbl \u8226? Record escrow purchases\line\u8226? Store buyer, product, hub, quantity, and status\line\u8226? Move through pending, at_hub, and collected states\cell\intbl Buyer, Product, Hub, CheckoutHandler, HubPending, HubActionHandler\cell\row
+
+\trowd\trgaph108\trleft0\cellx2000\cellx9000\cellx12000
+\intbl Hub\cell\intbl \u8226? Store pickup hub name and address\line\u8226? Provide pickup locations at checkout\line\u8226? Support admin creation and deletion\cell\intbl AdminDashboard, Checkout, Transaction, HubPending\cell\row
+
+\trowd\trgaph108\trleft0\cellx2000\cellx9000\cellx12000
+\intbl SavedItem\cell\intbl \u8226? Persist bookmarked products for a session or user\line\u8226? Prevent duplicate saved entries\line\u8226? Migrate session saves after login\cell\intbl User, Product, Login, SavedItems, ToggleSave, CartAction\cell\row
+
+\trowd\trgaph108\trleft0\cellx2000\cellx9000\cellx12000
+\intbl Review\cell\intbl \u8226? Store product feedback and ratings\line\u8226? Attach review text to a product\line\u8226? Support marketplace trust signals\cell\intbl Product, SeedMarketplaceExtras, Index\cell\row
+
+\trowd\trgaph108\trleft0\cellx2000\cellx9000\cellx12000
+\intbl DatabaseConnection\cell\intbl \u8226? Create the PDO connection\line\u8226? Configure exception-based error handling\line\u8226? Provide shared access to MySQL\cell\intbl Register, Login, UploadProduct, CheckoutHandler, AdminDashboard, HubPending, Seed Scripts\cell\row
+
+\trowd\trgaph108\trleft0\cellx2000\cellx9000\cellx12000
+\intbl AuthSession\cell\intbl \u8226? Start and secure PHP sessions\line\u8226? Store user identity, role, CSRF token, flash messages, and cart state\line\u8226? Control post-login redirects\cell\intbl Login, Logout, Register, Cart, Checkout, AdminDashboard, HubPending\cell\row
+
+}

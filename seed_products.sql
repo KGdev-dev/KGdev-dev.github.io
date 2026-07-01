@@ -1,0 +1,4 @@
+INSERT INTO products (seller_id, title, description, price, size, image_path, status, created_at) VALUES
+(2, 'Grade 1 White School Shirt', 'Lightweight white school shirt in excellent condition. Perfect for daily wear and easy to wash.', 95.00, 'Age 6-7', 'uploads/grade-1-white-shirt.jpg', 'available', NOW()),
+(2, 'Grey School Trousers', 'Durable grey school trousers with a clean finish and comfortable fit for regular school use.', 140.00, 'Age 10-11', 'uploads/grey-school-trousers.jpg', 'available', NOW()),
+(2, 'Navy School Jersey', 'Warm navy jersey for cold mornings. Soft fabric and ideal for layered school uniforms.', 180.00, 'Small', 'uploads/navy-school-jersey.jpg', 'available', NOW());
