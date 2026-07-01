@@ -56,8 +56,10 @@ $csrfToken = (string) ($_SESSION['csrf_token'] ?? '');
 $sellerActionUrl = kasi_exchange_url('seller_listing_action.php');
 $sellerId = (int) ($_SESSION['user_id'] ?? 0);
 $sellerName = (string) ($_SESSION['user_name'] ?? 'Seller');
+$sizeOptions = ['Age 4-5', 'Age 6-7', 'Age 8-9', 'Age 10-11', 'Age 11-12', 'Small', 'Medium', 'Large', 'XL'];
 
 $items = [];
+$activityRows = [];
 
 try {
     $stmt = $pdo->prepare(
@@ -84,6 +86,22 @@ try {
     $items = $stmt->fetchAll();
 } catch (Throwable $throwable) {
     $items = [];
+}
+
+try {
+    $activityStmt = $pdo->prepare(
+        'SELECT t.id, t.status AS transaction_status, t.created_at, p.title AS product_title, buyer.full_name AS buyer_name
+         FROM transactions t
+         INNER JOIN products p ON p.id = t.product_id
+         LEFT JOIN users buyer ON buyer.id = t.buyer_id
+         WHERE p.seller_id = :seller_id
+         ORDER BY t.id DESC
+         LIMIT 5'
+    );
+    $activityStmt->execute([':seller_id' => $sellerId]);
+    $activityRows = $activityStmt->fetchAll();
+} catch (Throwable $throwable) {
+    $activityRows = [];
 }
 
 $logoutUrl = kasi_exchange_url('logout.php');
@@ -155,6 +173,85 @@ $homeUrl = kasi_exchange_url('index.php');
             font-size: 1.1rem;
             line-height: 1;
         }
+
+        .seller-tools-grid {
+            margin-bottom: 1.35rem;
+        }
+
+        .seller-tool-col {
+            padding: 0 0.25rem;
+        }
+
+        .seller-tool-panel {
+            height: 100%;
+            border-top: 1px solid rgba(255, 140, 0, 0.14);
+            padding-top: 0.25rem;
+        }
+
+        .seller-tool-label {
+            font-size: 0.72rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #8a7c70;
+        }
+
+        .seller-tool-heading {
+            font-size: 1.15rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .seller-flat-input,
+        .seller-flat-select,
+        .seller-flat-file {
+            border-radius: 0.8rem !important;
+            border-color: rgba(255, 140, 0, 0.18) !important;
+            background: rgba(255, 255, 255, 0.65) !important;
+            box-shadow: none !important;
+        }
+
+        .seller-flat-input:focus,
+        .seller-flat-select:focus,
+        .seller-flat-file:focus {
+            border-color: var(--kasi-orange) !important;
+            box-shadow: 0 0 0 0.2rem rgba(255, 140, 0, 0.16) !important;
+        }
+
+        .seller-flat-submit {
+            background: linear-gradient(135deg, var(--kasi-orange) 0%, #ff9800 100%);
+            border: 0;
+            color: #fff;
+            box-shadow: none;
+        }
+
+        .seller-flat-submit:hover,
+        .seller-flat-submit:focus {
+            color: #fff;
+            background: linear-gradient(135deg, #ff9a1f 0%, #ff8c00 100%);
+        }
+
+        .seller-log-panel {
+            border-left: 1px solid rgba(133, 119, 106, 0.12);
+            padding-left: 1rem;
+        }
+
+        .seller-log-list {
+            border-top: 1px solid rgba(133, 119, 106, 0.12);
+        }
+
+        .seller-log-item {
+            padding: 0.85rem 0;
+            border-bottom: 1px solid rgba(133, 119, 106, 0.12);
+        }
+
+        .seller-log-title {
+            font-weight: 600;
+            color: #3e352d;
+        }
+
+        .seller-log-meta {
+            color: #8a7c70;
+            font-size: 0.88rem;
+        }
     </style>
 </head>
 <body>
@@ -172,6 +269,82 @@ $homeUrl = kasi_exchange_url('index.php');
                     <a href="<?= htmlspecialchars($homeUrl, ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary">Back to Home</a>
                     <a href="<?= htmlspecialchars($logoutUrl, ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary">Log Out</a>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="seller-tools-grid px-0">
+        <div class="row g-4 align-items-start">
+            <div class="col-lg-6 seller-tool-col">
+                <section class="seller-tool-panel">
+                    <div class="seller-tool-label mb-2">Upload</div>
+                    <h2 class="seller-tool-heading">List a New Uniform</h2>
+                    <form method="post" action="<?= htmlspecialchars(kasi_exchange_url('upload_product.php'), ENT_QUOTES, 'UTF-8') ?>" enctype="multipart/form-data" novalidate>
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <input type="text" name="title" class="form-control seller-flat-input" placeholder="Title" required>
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" name="price" class="form-control seller-flat-input" placeholder="Price" required>
+                            </div>
+                            <div class="col-12">
+                                <textarea name="description" class="form-control seller-flat-input" rows="3" placeholder="Short description" required></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <select name="size" class="form-select seller-flat-select" required>
+                                    <option value="">Size</option>
+                                    <?php foreach ($sizeOptions as $sizeOption): ?>
+                                        <option value="<?= htmlspecialchars($sizeOption, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($sizeOption, ENT_QUOTES, 'UTF-8') ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <input type="file" name="image" class="form-control seller-flat-file" accept="image/jpeg,image/png" required>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn seller-flat-submit w-100 py-2">Publish Listing</button>
+                            </div>
+                        </div>
+                    </form>
+                </section>
+            </div>
+
+            <div class="col-lg-6 seller-tool-col">
+                <section class="seller-tool-panel seller-log-panel">
+                    <div class="seller-tool-label mb-2">Verification</div>
+                    <h2 class="seller-tool-heading">Tracking and Activity</h2>
+                    <div class="seller-log-list">
+                        <?php if ($activityRows === []): ?>
+                            <div class="seller-log-item">
+                                <div class="seller-log-title">Verification Pending</div>
+                                <div class="seller-log-meta">Recent transaction activity will appear here after orders are placed.</div>
+                            </div>
+                        <?php else: ?>
+                            <?php foreach ($activityRows as $activityRow): ?>
+                                <?php
+                                $transactionStatus = strtolower(trim((string) ($activityRow['transaction_status'] ?? 'pending')));
+                                $activityLabel = match ($transactionStatus) {
+                                    'pending' => 'Verification Pending',
+                                    'at_hub' => 'Hub Drop-off Logged',
+                                    'collected' => 'Collection Confirmed',
+                                    'cancelled' => 'Transaction Cancelled',
+                                    default => ucfirst(str_replace('_', ' ', $transactionStatus)),
+                                };
+                                $buyerName = trim((string) ($activityRow['buyer_name'] ?? ''));
+                                $productTitle = trim((string) ($activityRow['product_title'] ?? 'Listing'));
+                                $createdAt = trim((string) ($activityRow['created_at'] ?? ''));
+                                ?>
+                                <div class="seller-log-item">
+                                    <div class="seller-log-title"><?= htmlspecialchars($activityLabel, ENT_QUOTES, 'UTF-8') ?></div>
+                                    <div class="seller-log-meta">
+                                        <?= htmlspecialchars($productTitle, ENT_QUOTES, 'UTF-8') ?><?php if ($buyerName !== ''): ?> · <?= htmlspecialchars($buyerName, ENT_QUOTES, 'UTF-8') ?><?php endif; ?><?php if ($createdAt !== ''): ?> · <?= htmlspecialchars($createdAt, ENT_QUOTES, 'UTF-8') ?><?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </section>
             </div>
         </div>
     </div>
