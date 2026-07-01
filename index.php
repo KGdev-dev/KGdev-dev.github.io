@@ -21,6 +21,11 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once __DIR__ . '/db_connect.php';
 
+if (isset($_SESSION['user_role']) && (string) $_SESSION['user_role'] === 'seller') {
+    header('Location: ' . kasi_exchange_url('seller_dashboard.php'));
+    exit;
+}
+
 $logoutUrl = kasi_exchange_url('logout.php');
 $uploadUrl = kasi_exchange_url('upload_product.php');
 $verifyUrl = kasi_exchange_url('verify_upload.php');
@@ -110,24 +115,12 @@ $page = min($page, $totalPages);
 $offset = ($page - 1) * $limit;
 
 try {
-    if (isset($_SESSION['user_id'])) {
-        // Logged in user query (hide their own products if necessary)
-        $query = "SELECT p.*, u.full_name AS seller_name
-                  FROM products p
-                  LEFT JOIN users u ON u.id = p.seller_id
-                  WHERE p.status = 'available' AND p.seller_id != :user_id
-                  ORDER BY p.id DESC LIMIT :limit OFFSET :offset";
-        $stmt = $pdo->prepare($query);
-        $stmt->bindValue(':user_id', $_SESSION['user_id'], PDO::PARAM_INT);
-    } else {
-        // Guest user query (completely unrestricted storefront view)
-        $query = "SELECT p.*, u.full_name AS seller_name
-                  FROM products p
-                  LEFT JOIN users u ON u.id = p.seller_id
-                  WHERE p.status = 'available'
-                  ORDER BY p.id DESC LIMIT :limit OFFSET :offset";
-        $stmt = $pdo->prepare($query);
-    }
+    $query = "SELECT p.*, u.full_name AS seller_name
+              FROM products p
+              LEFT JOIN users u ON u.id = p.seller_id
+              WHERE p.status = 'available'
+              ORDER BY p.id DESC LIMIT :limit OFFSET :offset";
+    $stmt = $pdo->prepare($query);
 
     // Force PHP to treat these values as strict numbers, not text strings
     $stmt->bindValue(':limit', (int) $limit, PDO::PARAM_INT);
