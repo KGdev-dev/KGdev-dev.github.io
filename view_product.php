@@ -145,76 +145,88 @@ if ($product === false) {
 			</div>
 		</div>
 	<?php else: ?>
-		<div class="kasi-view-grid">
-			<section class="kasi-view-panel kasi-view-image-panel">
-				<img src="<?= htmlspecialchars($productImage, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($productTitle, ENT_QUOTES, 'UTF-8') ?>" class="kasi-view-image img-fluid">
-			</section>
+		<div class="row">
+			<div class="col-md-6">
+				<section class="kasi-view-panel kasi-view-image-panel">
+					<img src="<?= htmlspecialchars($productImage, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($productTitle, ENT_QUOTES, 'UTF-8') ?>" class="kasi-view-image img-fluid w-100">
+				</section>
+			</div>
 
-			<aside class="kasi-view-panel kasi-view-body position-sticky" style="top: 1.5rem;">
-				<div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-					<div class="flex-grow-1 min-w-0">
-						<p class="kasi-view-eyebrow mb-2">Listed by <?= htmlspecialchars($sellerDisplayName, ENT_QUOTES, 'UTF-8') ?></p>
-						<h2 class="kasi-view-title mb-3"><?= htmlspecialchars($productTitle, ENT_QUOTES, 'UTF-8') ?></h2>
+			<div class="col-md-6">
+				<aside class="kasi-view-panel kasi-view-body position-sticky" style="top: 1.5rem;">
+					<div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+						<div class="flex-grow-1 min-w-0">
+							<p class="kasi-view-eyebrow mb-2">Listed by <?= htmlspecialchars($sellerDisplayName, ENT_QUOTES, 'UTF-8') ?></p>
+							<h2 class="kasi-view-title mb-3"><?= htmlspecialchars($productTitle, ENT_QUOTES, 'UTF-8') ?></h2>
+						</div>
+						<div class="text-end">
+							<div class="kasi-view-price">R <?= htmlspecialchars(number_format((float) ($product['price'] ?? 0), 2, '.', ' '), ENT_QUOTES, 'UTF-8') ?></div>
+							<div class="kasi-view-meta">Price</div>
+						</div>
 					</div>
-					<div class="text-end">
-						<div class="kasi-view-price">R <?= htmlspecialchars(number_format((float) ($product['price'] ?? 0), 2, '.', ' '), ENT_QUOTES, 'UTF-8') ?></div>
-						<div class="kasi-view-meta">Price</div>
-					</div>
-				</div>
 
-				<div class="d-flex flex-wrap gap-2 mt-3">
-					<span class="badge text-bg-light border">Condition: <?= htmlspecialchars($productCondition, ENT_QUOTES, 'UTF-8') ?></span>
-					<?php if ($productSize !== ''): ?>
-						<span class="badge text-bg-light border">Size: <?= htmlspecialchars($productSize, ENT_QUOTES, 'UTF-8') ?></span>
+					<div class="d-flex flex-wrap gap-2 mt-3">
+						<span class="badge text-bg-light border">Condition: <?= htmlspecialchars($productCondition, ENT_QUOTES, 'UTF-8') ?></span>
+						<?php if (!empty($product['status'])): ?>
+							<span class="badge text-bg-light border text-capitalize"><?= htmlspecialchars((string) $product['status'], ENT_QUOTES, 'UTF-8') ?></span>
+						<?php endif; ?>
+					</div>
+
+					<?php if ($productDescription !== ''): ?>
+						<p class="mt-4 mb-0 text-muted lh-lg"><?= htmlspecialchars($productDescription, ENT_QUOTES, 'UTF-8') ?></p>
 					<?php endif; ?>
-					<?php if (!empty($product['status'])): ?>
-						<span class="badge text-bg-light border text-capitalize"><?= htmlspecialchars((string) $product['status'], ENT_QUOTES, 'UTF-8') ?></span>
-					<?php endif; ?>
-				</div>
 
-				<?php if ($productDescription !== ''): ?>
-					<p class="mt-4 mb-0 text-muted lh-lg"><?= htmlspecialchars($productDescription, ENT_QUOTES, 'UTF-8') ?></p>
-				<?php endif; ?>
+					<div class="kasi-view-divider"></div>
 
-				<div class="kasi-view-divider"></div>
+					<form method="post" action="<?= htmlspecialchars(kasi_exchange_url('cart_handler.php'), ENT_QUOTES, 'UTF-8') ?>">
+						<input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+						<input type="hidden" name="product_id" value="<?= htmlspecialchars((string) $productId, ENT_QUOTES, 'UTF-8') ?>">
+						<input type="hidden" name="return_to" value="<?= htmlspecialchars('view_product.php?id=' . (string) $productId, ENT_QUOTES, 'UTF-8') ?>">
 
-				<form method="post" action="<?= htmlspecialchars(kasi_exchange_url('cart_handler.php'), ENT_QUOTES, 'UTF-8') ?>">
-					<input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
-					<input type="hidden" name="product_id" value="<?= htmlspecialchars((string) $productId, ENT_QUOTES, 'UTF-8') ?>">
-					<input type="hidden" name="return_to" value="<?= htmlspecialchars('view_product.php?id=' . (string) $productId, ENT_QUOTES, 'UTF-8') ?>">
+						<div class="mb-3">
+							<label for="size" class="form-label fw-semibold mb-2">Size</label>
+							<select id="size" name="size" class="form-select">
+								<?php if ($productSize !== ''): ?>
+									<option value="<?= htmlspecialchars($productSize, ENT_QUOTES, 'UTF-8') ?>" selected><?= htmlspecialchars($productSize, ENT_QUOTES, 'UTF-8') ?></option>
+								<?php else: ?>
+									<option value="">One size</option>
+								<?php endif; ?>
+							</select>
+						</div>
 
-					<div class="mb-3">
-						<label for="quantity" class="form-label fw-semibold mb-2">Quantity</label>
-						<select id="quantity" name="quantity" class="form-select kasi-view-qty">
-							<?php for ($quantity = 1; $quantity <= 5; $quantity++): ?>
-								<option value="<?= $quantity ?>" <?= $quantity === 1 ? 'selected' : '' ?>><?= $quantity ?></option>
-							<?php endfor; ?>
-						</select>
+						<div class="mb-3">
+							<label for="quantity" class="form-label fw-semibold mb-2">Quantity</label>
+							<select id="quantity" name="quantity" class="form-select kasi-view-qty">
+								<?php for ($quantity = 1; $quantity <= 5; $quantity++): ?>
+									<option value="<?= $quantity ?>" <?= $quantity === 1 ? 'selected' : '' ?>><?= $quantity ?></option>
+								<?php endfor; ?>
+							</select>
+						</div>
+
+						<div class="kasi-view-actions d-grid gap-2">
+							<button type="submit" class="btn btn-primary btn-lg" formaction="<?= htmlspecialchars(kasi_exchange_url('checkout.php'), ENT_QUOTES, 'UTF-8') ?>" formmethod="get">Buy It Now</button>
+							<button type="submit" class="btn btn-outline-secondary btn-lg">Add to Bag</button>
+						</div>
+					</form>
+
+					<form action="<?= htmlspecialchars(kasi_exchange_url('toggle_save.php'), ENT_QUOTES, 'UTF-8') ?>" method="post" class="mt-3">
+						<input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+						<input type="hidden" name="product_id" value="<?= htmlspecialchars((string) $productId, ENT_QUOTES, 'UTF-8') ?>">
+						<button type="submit" class="btn btn-link p-0 text-decoration-none kasi-view-wishlist w-100 text-start">
+							<span aria-hidden="true"><?= $isSaved ? '♥' : '♡' ?></span>
+							<span class="ms-1">Add to Wishlist</span>
+						</button>
+					</form>
+
+					<div class="kasi-view-divider"></div>
+
+					<div class="mt-3">
+						<h3 class="h5 fw-bold mb-2">Meet your seller</h3>
+						<p class="mb-1 kasi-view-seller-name"><?= htmlspecialchars($sellerDisplayName, ENT_QUOTES, 'UTF-8') ?></p>
+						<a href="#" class="link-secondary text-decoration-underline kasi-view-seller-link">View shop registration details</a>
 					</div>
-
-					<div class="kasi-view-actions d-grid gap-2">
-						<button type="submit" class="btn btn-primary btn-lg" formaction="<?= htmlspecialchars(kasi_exchange_url('checkout.php'), ENT_QUOTES, 'UTF-8') ?>" formmethod="get">Buy It Now</button>
-						<button type="submit" class="btn btn-outline-secondary btn-lg">Add to Bag</button>
-					</div>
-				</form>
-
-				<form action="<?= htmlspecialchars(kasi_exchange_url('toggle_save.php'), ENT_QUOTES, 'UTF-8') ?>" method="post" class="mt-3">
-					<input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
-					<input type="hidden" name="product_id" value="<?= htmlspecialchars((string) $productId, ENT_QUOTES, 'UTF-8') ?>">
-					<button type="submit" class="btn btn-link p-0 text-decoration-none kasi-view-wishlist w-100 text-start">
-						<span aria-hidden="true"><?= $isSaved ? '♥' : '♡' ?></span>
-						<span class="ms-1">Add to Wishlist</span>
-					</button>
-				</form>
-
-				<div class="kasi-view-divider"></div>
-
-				<div>
-					<h3 class="h5 fw-bold mb-2">Meet your seller</h3>
-					<p class="mb-1 kasi-view-seller-name"><?= htmlspecialchars($sellerDisplayName, ENT_QUOTES, 'UTF-8') ?></p>
-					<a href="#" class="link-secondary text-decoration-underline kasi-view-seller-link">View shop registration details</a>
-				</div>
-			</aside>
+				</aside>
+			</div>
 		</div>
 	<?php endif; ?>
 </main>
