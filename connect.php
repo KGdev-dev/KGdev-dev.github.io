@@ -231,7 +231,7 @@ if (!function_exists('kasi_exchange_connect_stars')) {
         <div class="col-lg-6">
             <section class="flat-block">
                 <div class="accent-kicker mb-2">Feedback Feed</div>
-                <h2 class="h3 fw-bold mb-3">Etsy/eBay Style Reviews</h2>
+                <h2 class="h3 fw-bold mb-3">Kasi Exchange Platform Reviews</h2>
                 <div class="flat-block">
                     <?php foreach ($reviews as $review): ?>
                         <div class="review-row">

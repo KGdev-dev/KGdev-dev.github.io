@@ -81,6 +81,12 @@ try {
     // best effort only
 }
 
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS support_tickets (id INT AUTO_INCREMENT PRIMARY KEY, user_role VARCHAR(50) NOT NULL, user_name VARCHAR(191) NOT NULL, subject VARCHAR(191) NOT NULL, message TEXT NOT NULL, status VARCHAR(50) NOT NULL DEFAULT 'open', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+} catch (Throwable $throwable) {
+    // best effort only
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $submittedToken = (string) ($_POST['csrf_token'] ?? '');
     $sessionToken = (string) ($_SESSION['csrf_token'] ?? '');
@@ -187,6 +193,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             kasi_exchange_admin_redirect();
         }
 
+        if ($action === 'resolve_ticket') {
+            $ticketId = filter_var($_POST['ticket_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+
+            if ($ticketId === false || $ticketId === null) {
+                throw new RuntimeException('Invalid ticket resolve request.');
+            }
+
+            $stmt = $pdo->prepare("UPDATE support_tickets SET status = 'resolved' WHERE id = :id AND status NOT IN ('resolved', 'closed')");
+            $stmt->execute([':id' => (int) $ticketId]);
+
+            if ($stmt->rowCount() === 0) {
+                throw new RuntimeException('No ticket was updated.');
+            }
+
+            kasi_exchange_admin_flash_success('Support ticket resolved successfully.');
+            kasi_exchange_admin_redirect();
+        }
+
         throw new RuntimeException('Invalid admin action.');
     } catch (Throwable $throwable) {
         kasi_exchange_admin_flash_error($throwable->getMessage());
@@ -196,6 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $users = [];
 $hubs = [];
+$supportTickets = [];
 
 try {
     $stmt = $pdo->query('SELECT id, full_name AS name, email, role, created_at FROM users ORDER BY id DESC');
@@ -212,8 +237,16 @@ try {
     $hubs = [];
 }
 
+try {
+    $stmt = $pdo->query('SELECT * FROM support_tickets ORDER BY created_at DESC');
+    $supportTickets = $stmt->fetchAll();
+} catch (Throwable $throwable) {
+    $supportTickets = [];
+}
+
 $userCount = count($users);
 $hubCount = count($hubs);
+$ticketCount = count($supportTickets);
 
 ?><!doctype html>
 <html lang="en">
@@ -249,6 +282,31 @@ $hubCount = count($hubs);
         .soft-card {
             border: 0;
             box-shadow: 0 0.75rem 1.75rem rgba(15, 23, 42, 0.08);
+        }
+
+        .support-panel {
+            background: transparent;
+        }
+
+        .support-table thead th {
+            border-bottom-color: rgba(100, 116, 139, 0.18) !important;
+        }
+
+        .support-table tbody td {
+            border-top-color: rgba(100, 116, 139, 0.12) !important;
+        }
+
+        .ticket-message {
+            max-width: 340px;
+            white-space: normal;
+        }
+
+        .ticket-action-btn {
+            border-radius: 999px;
+        }
+
+        .ticket-muted {
+            color: #94a3b8;
         }
     </style>
 </head>
@@ -444,6 +502,71 @@ $hubCount = count($hubs);
                     <?php endif; ?>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mt-1">
+        <div class="col-12">
+            <section class="support-panel">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 px-1 mb-3">
+                    <div>
+                        <p class="text-uppercase text-muted small mb-1">Operations</p>
+                        <h2 class="h4 mb-1">Support Ticket Management</h2>
+                        <p class="text-muted mb-0">Track escalations from buyers, sellers, and agents in one place.</p>
+                    </div>
+                    <span class="badge text-bg-light border"><?= htmlspecialchars((string) $ticketCount, ENT_QUOTES, 'UTF-8') ?> tickets</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0 support-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" class="ps-3">Ticket ID</th>
+                                <th scope="col">User Role</th>
+                                <th scope="col">User Name</th>
+                                <th scope="col">Subject</th>
+                                <th scope="col">Message</th>
+                                <th scope="col">Date Submitted</th>
+                                <th scope="col" class="text-end pe-3">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if ($supportTickets === []): ?>
+                                <tr>
+                                    <td colspan="7" class="py-4 text-center text-muted">No support tickets have been submitted yet.</td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($supportTickets as $ticket): ?>
+                                    <?php
+                                    $ticketStatus = strtolower(trim((string) ($ticket['status'] ?? 'open')));
+                                    $isClosed = in_array($ticketStatus, ['resolved', 'closed'], true);
+                                    ?>
+                                    <tr>
+                                        <td class="ps-3 fw-medium">#<?= htmlspecialchars((string) ($ticket['id'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
+                                        <td><?= htmlspecialchars(ucfirst((string) ($ticket['user_role'] ?? '')), ENT_QUOTES, 'UTF-8') ?></td>
+                                        <td><?= htmlspecialchars((string) ($ticket['user_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
+                                        <td class="fw-medium"><?= htmlspecialchars((string) ($ticket['subject'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
+                                        <td class="ticket-message text-muted"><?= htmlspecialchars((string) ($ticket['message'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
+                                        <td><?= htmlspecialchars((string) ($ticket['created_at'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
+                                        <td class="text-end pe-3">
+                                            <?php if ($isClosed): ?>
+                                                <span class="ticket-muted small">Closed</span>
+                                            <?php else: ?>
+                                                <form method="post" action="<?= htmlspecialchars(kasi_exchange_url('admin_dashboard.php'), ENT_QUOTES, 'UTF-8') ?>" class="d-inline">
+                                                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+                                                    <input type="hidden" name="action" value="resolve_ticket">
+                                                    <input type="hidden" name="ticket_id" value="<?= htmlspecialchars((string) ($ticket['id'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+                                                    <button type="submit" class="btn btn-sm btn-outline-primary ticket-action-btn">Resolve</button>
+                                                </form>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
         </div>
     </div>
 </main>
