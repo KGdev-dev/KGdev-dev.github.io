@@ -55,10 +55,20 @@ $items = [];
 
 try {
     $stmt = $pdo->prepare(
-        'SELECT id, title, price, image_path, status
-         FROM products
-         WHERE seller_id = :seller_id
-         ORDER BY id DESC'
+        'SELECT p.id, p.title, p.price, p.image_path, p.status, buyer.full_name AS buyer_name
+         FROM products p
+         LEFT JOIN (
+             SELECT o.product_id, o.buyer_id
+             FROM transactions o
+             INNER JOIN (
+                 SELECT product_id, MAX(id) AS latest_id
+                 FROM transactions
+                 GROUP BY product_id
+             ) latest ON latest.product_id = o.product_id AND latest.latest_id = o.id
+         ) latest_order ON latest_order.product_id = p.id
+         LEFT JOIN users buyer ON buyer.id = latest_order.buyer_id
+         WHERE p.seller_id = :seller_id
+         ORDER BY p.id DESC'
     );
     $stmt->execute([':seller_id' => $sellerId]);
     $items = $stmt->fetchAll();
@@ -86,11 +96,11 @@ $homeUrl = kasi_exchange_url('index.php');
         }
 
         .dashboard-shell {
-            max-width: 1180px;
+            max-width: 1320px;
         }
 
         .page-hero {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+            background: linear-gradient(135deg, rgba(255, 250, 240, 0.9) 0%, rgba(255, 255, 255, 0.94) 100%);
         }
 
         .table thead th {
@@ -109,6 +119,19 @@ $homeUrl = kasi_exchange_url('index.php');
             height: 72px;
             object-fit: cover;
             border-radius: 0.75rem;
+        }
+
+        .inventory-panel {
+            background: rgba(255, 255, 255, 0.72);
+        }
+
+        .buyer-details {
+            color: #5f5146;
+            font-size: 0.95rem;
+        }
+
+        .buyer-muted {
+            color: #8a7c70;
         }
     </style>
 </head>
@@ -131,7 +154,7 @@ $homeUrl = kasi_exchange_url('index.php');
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm">
+    <div class="card border-0 shadow-sm inventory-panel">
         <div class="card-body p-0">
             <div class="d-flex justify-content-between align-items-center px-4 pt-4 pb-3">
                 <div>
@@ -141,26 +164,35 @@ $homeUrl = kasi_exchange_url('index.php');
                 <span class="badge text-bg-light border"><?= htmlspecialchars((string) count($items), ENT_QUOTES, 'UTF-8') ?> items</span>
             </div>
 
-            <?php if ($items === []): ?>
-                <div class="px-4 pb-4">
-                    <div class="alert alert-secondary mb-0" role="alert">No items have been listed by this seller yet.</div>
-                </div>
-            <?php else: ?>
-                <div class="table-responsive d-none d-md-block">
-                    <table class="table align-middle mb-0">
-                        <thead class="table-light">
+            <div class="table-responsive px-4 pb-4">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="ps-0">Image</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">Price</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Buyer/Seller Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if ($items === []): ?>
                             <tr>
-                                <th scope="col" class="ps-4">Image</th>
-                                <th scope="col">Title</th>
-                                <th scope="col">Price</th>
-                                <th scope="col">Status</th>
+                                <td colspan="5" class="py-4 text-center text-muted">No items have been listed by this seller yet.</td>
                             </tr>
-                        </thead>
-                        <tbody>
+                        <?php else: ?>
                             <?php foreach ($items as $item): ?>
-                                <?php $status = (string) ($item['status'] ?? ''); ?>
+                                <?php
+                                $status = strtolower(trim((string) ($item['status'] ?? '')));
+                                $buyerName = trim((string) ($item['buyer_name'] ?? ''));
+                                $buyerDetails = '—';
+
+                                if (in_array($status, ['escrow', 'sold'], true)) {
+                                    $buyerDetails = $buyerName !== '' ? 'Bought by: ' . $buyerName : 'Bought by: Pending buyer';
+                                }
+                                ?>
                                 <tr>
-                                    <td class="ps-4">
+                                    <td class="ps-0">
                                         <img src="<?= htmlspecialchars(kasi_exchange_seller_dashboard_image_url((string) ($item['image_path'] ?? '')), ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars((string) ($item['title'] ?? 'Item image'), ENT_QUOTES, 'UTF-8') ?>" class="thumb shadow-sm">
                                     </td>
                                     <td class="fw-medium"><?= htmlspecialchars((string) ($item['title'] ?? 'Untitled Item'), ENT_QUOTES, 'UTF-8') ?></td>
@@ -170,32 +202,15 @@ $homeUrl = kasi_exchange_url('index.php');
                                             <?= htmlspecialchars(kasi_exchange_seller_dashboard_status_label($status), ENT_QUOTES, 'UTF-8') ?>
                                         </span>
                                     </td>
+                                    <td class="buyer-details <?= $buyerDetails === '—' ? 'buyer-muted' : '' ?>">
+                                        <?= htmlspecialchars($buyerDetails, ENT_QUOTES, 'UTF-8') ?>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="d-md-none px-4 pb-4">
-                    <?php foreach ($items as $item): ?>
-                        <?php $status = (string) ($item['status'] ?? ''); ?>
-                        <div class="card border-0 shadow-sm item-card">
-                            <div class="card-body p-3">
-                                <div class="d-flex gap-3 align-items-start">
-                                    <img src="<?= htmlspecialchars(kasi_exchange_seller_dashboard_image_url((string) ($item['image_path'] ?? '')), ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars((string) ($item['title'] ?? 'Item image'), ENT_QUOTES, 'UTF-8') ?>" class="thumb shadow-sm flex-shrink-0">
-                                    <div class="flex-grow-1">
-                                        <div class="fw-semibold mb-1"><?= htmlspecialchars((string) ($item['title'] ?? 'Untitled Item'), ENT_QUOTES, 'UTF-8') ?></div>
-                                        <div class="text-muted small mb-2">R <?= htmlspecialchars(number_format((float) ($item['price'] ?? 0), 2, '.', ' '), ENT_QUOTES, 'UTF-8') ?></div>
-                                        <span class="badge rounded-pill <?= htmlspecialchars(kasi_exchange_seller_dashboard_status_badge($status), ENT_QUOTES, 'UTF-8') ?>">
-                                            <?= htmlspecialchars(kasi_exchange_seller_dashboard_status_label($status), ENT_QUOTES, 'UTF-8') ?>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </main>
