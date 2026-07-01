@@ -11,6 +11,10 @@ if (($_SESSION['role'] ?? '') !== 'seller') {
 require_once __DIR__ . '/db_connect.php';
 require_once __DIR__ . '/path_helpers.php';
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 if (!function_exists('kasi_exchange_seller_dashboard_image_url')) {
     function kasi_exchange_seller_dashboard_image_url(?string $imagePath): string
     {
@@ -48,6 +52,8 @@ if (!function_exists('kasi_exchange_seller_dashboard_status_label')) {
     }
 }
 
+$csrfToken = (string) ($_SESSION['csrf_token'] ?? '');
+$sellerActionUrl = kasi_exchange_url('seller_listing_action.php');
 $sellerId = (int) ($_SESSION['user_id'] ?? 0);
 $sellerName = (string) ($_SESSION['user_name'] ?? 'Seller');
 
@@ -68,9 +74,13 @@ try {
          ) latest_order ON latest_order.product_id = p.id
          LEFT JOIN users buyer ON buyer.id = latest_order.buyer_id
          WHERE p.seller_id = :seller_id
+           AND p.status <> :hidden_status
          ORDER BY p.id DESC'
     );
-    $stmt->execute([':seller_id' => $sellerId]);
+    $stmt->execute([
+        ':seller_id' => $sellerId,
+        ':hidden_status' => 'archived',
+    ]);
     $items = $stmt->fetchAll();
 } catch (Throwable $throwable) {
     $items = [];
@@ -133,6 +143,18 @@ $homeUrl = kasi_exchange_url('index.php');
         .buyer-muted {
             color: #8a7c70;
         }
+
+        .seller-remove-btn {
+            min-width: 0;
+            padding: 0.45rem 0.8rem;
+            border-radius: 999px;
+        }
+
+        .seller-action-empty {
+            color: #a8a29e;
+            font-size: 1.1rem;
+            line-height: 1;
+        }
     </style>
 </head>
 <body>
@@ -173,12 +195,13 @@ $homeUrl = kasi_exchange_url('index.php');
                             <th scope="col">Price</th>
                             <th scope="col">Status</th>
                             <th scope="col">Buyer/Seller Details</th>
+                            <th scope="col" class="text-end pe-0">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if ($items === []): ?>
                             <tr>
-                                <td colspan="5" class="py-4 text-center text-muted">No items have been listed by this seller yet.</td>
+                                <td colspan="6" class="py-4 text-center text-muted">No items have been listed by this seller yet.</td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($items as $item): ?>
@@ -204,6 +227,17 @@ $homeUrl = kasi_exchange_url('index.php');
                                     </td>
                                     <td class="buyer-details <?= $buyerDetails === '—' ? 'buyer-muted' : '' ?>">
                                         <?= htmlspecialchars($buyerDetails, ENT_QUOTES, 'UTF-8') ?>
+                                    </td>
+                                    <td class="text-end pe-0">
+                                        <?php if ($status === 'sold'): ?>
+                                            <form method="post" action="<?= htmlspecialchars($sellerActionUrl, ENT_QUOTES, 'UTF-8') ?>" class="d-inline">
+                                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
+                                                <input type="hidden" name="product_id" value="<?= htmlspecialchars((string) $item['id'], ENT_QUOTES, 'UTF-8') ?>">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm seller-remove-btn">Remove</button>
+                                            </form>
+                                        <?php else: ?>
+                                            <span class="seller-action-empty" aria-hidden="true">—</span>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
